@@ -36,7 +36,7 @@ class KeyPointDatasets(Dataset):
         img = cv2.imread(img)
 
         ################# 注意力机制 ##########################
-        img = DctChannelIDct(img)
+        # img = DctChannelIDct(img)
         ######################################################
         if self.transforms:
             img = self.transforms(img)

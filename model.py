@@ -4,6 +4,8 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 from thop import clever_format
 from thop import profile
+from irse import IRSE
+
 class SematicEmbbedBlock(nn.Module):
     def __init__(self, high_in_plane, low_in_plane, out_plane):
         super(SematicEmbbedBlock, self).__init__()
@@ -103,9 +105,12 @@ class KeyPointModel(nn.Module):
 
         self.heatmap = nn.Conv2d(6, 1, 1)
 
+        self.irse = IRSE(2, 64, 2)
+
     def forward(self, x):
 
         # print(x.shape) # torch.Size([2, 3, 256, 256])
+        x = self.irse(x)
 
         x1 = self.conv1(x)
         x1 = self.resnet(x1)
