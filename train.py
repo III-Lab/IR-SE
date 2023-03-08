@@ -25,7 +25,7 @@ def train(model, epoch, dataloader, optimizer, criterion, scheduler):
     model.train()
     for itr, (image, hm) in enumerate(dataloader):
         if torch.cuda.is_available():
-            device = torch.device('cuda:0')
+            device = torch.device('cpu', 0)
             hm = hm.to(device)
             image = image.to(device)
 
@@ -55,8 +55,9 @@ def test(model, epoch, dataloader, criterion):
     n_sample = 0
     for itr, (image, hm) in enumerate(dataloader):
         if torch.cuda.is_available():
-            hm = hm.cuda()
-            image = image.cuda()
+            # hm = hm.cuda()
+            # image = image.cuda()
+            pass
 
         output = model(image)
         hm = hm.float()
@@ -96,7 +97,7 @@ if __name__ == "__main__":
 
 
     if torch.cuda.is_available():
-        device = torch.device('cuda:0')
+        device = torch.device('cpu', 0)
         model=model.to(device)
         #model = model.cuda()
 
