@@ -7,10 +7,6 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 import numpy as np
 from utils import draw_umich_gaussian
-from dct_channel_idct import DctChannelIDct
-
-
-
 
 class KeyPointDatasets(Dataset):
     def __init__(self, root_dir="./data", transforms=None):
@@ -35,9 +31,6 @@ class KeyPointDatasets(Dataset):
 
         img = cv2.imread(img)
 
-        ################# 注意力机制 ##########################
-        # img = DctChannelIDct(img)
-        ######################################################
         if self.transforms:
             img = self.transforms(img)
 

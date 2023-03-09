@@ -119,7 +119,7 @@ if __name__ == "__main__":
 
         if epoch % 2 == 0:
             torch.save(model.state_dict(),
-                       "weights8/epoch_%d_%.3f.pt" % (epoch, loss*10000))
+                       "weights/epoch_%d_%.3f.pt" % (epoch, loss*10000))
     # x2 = range(0, 20)
     # y2 = Loss_list
     # plt.figure()
