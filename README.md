@@ -2,6 +2,8 @@
 
 
 
+## Introduce
+
 ```mermaid
 
 flowchart LR
@@ -19,7 +21,12 @@ flowchart LR
 
 ```
 
+## Result
+
+![image-20230309151805685](figures/image-20230309151805685.png)
 
 
 
+## Refer
 
+- [squeeze_and_excitation](https://github.com/ai-med/squeeze_and_excitation)
