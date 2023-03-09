@@ -105,7 +105,7 @@ class KeyPointModel(nn.Module):
 
         self.heatmap = nn.Conv2d(6, 1, 1)
 
-        self.irse = IRSE(2, 64, 2)
+        self.irse = IRSE(64, 2, 'CSSE')
 
     def forward(self, x):
 

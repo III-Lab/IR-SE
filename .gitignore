@@ -2,6 +2,9 @@
 *.zip
 *.bmp
 *.txt
+testIR.py
+weights8/
+output/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

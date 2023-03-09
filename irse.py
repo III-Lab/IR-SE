@@ -4,31 +4,43 @@ import os
 import cv2
 import torch
 import torch.nn as nn
-from squeeze_and_excitation import ChannelSpatialSELayer
+from squeeze_and_excitation import ChannelSpatialSELayer,ChannelSELayer, SpatialSELayer,SELayer
+
 
 class IRSE(nn.Module):
-    def __init__(self, bs, num_channels, reduction_ratio) -> None:
-        super(IRSE, self).__init__()
-        self.se_layer = ChannelSpatialSELayer(num_channels, reduction_ratio)
-        self.bs = bs
-    
     '''
+    param: se_block_type{ NONE, CSE, SSE, CSSE }
+    '''
+    def __init__(self, num_channels=64, reduction_ratio=2, se_block_type=SELayer.NONE) -> None:
+        super(IRSE, self).__init__()
+
+        self.se_block_type = se_block_type
+        if self.se_block_type == SELayer.CSE.value:                                 # 通道挤压
+            self.se_layer = ChannelSELayer(num_channels,reduction_ratio)
+        elif self.se_block_type == SELayer.SSE.value:                               # 控件挤压
+            self.se_layer = SpatialSELayer(num_channels,reduction_ratio)
+        elif self.se_block_type == SELayer.CSSE.value:                              # 通道与控件挤压
+            self.se_layer = ChannelSpatialSELayer(num_channels,reduction_ratio)
+
+    '''
+    numpy 与 pytorch 向量互转
     numpy to pytorch
     pytorch to numpy
     '''
-    def se_transpose(self, bs, x): 
-        if type(x) == np.ndarray:       # [H,W,C] -> [B,C,H,W]
+    def se_transpose(self, x): 
+        if type(x) == np.ndarray:       # [H,W,C] -> [1,C,H,W]
             x = np.transpose(x, [2,0,1]) 
             x_out = torch.from_numpy(x)
             x_out.unsqueeze(0)
-            x_out = x_out.repeat(bs,1,1,1) 
-        elif type(x) == torch.Tensor:   # [B,C,H,W] -> [H,W,C]
-            x = x[0]
+            x_out = x_out.repeat(1,1,1,1) 
+        elif type(x) == torch.Tensor:   # [1,C,H,W] -> [H,W,C]
+            x = x.squeeze()
             x_out = x.detach().numpy()
             x_out = np.transpose(x_out, [1, 2, 0])
         return x_out
     
     '''
+    dct 变换
     input: <class 'numpy.ndarray'> (256, 256, 3)
     output: <class 'numpy.ndarray'> (8, 8, 1024)
     '''
@@ -49,6 +61,7 @@ class IRSE(nn.Module):
         return dct_img
     
     '''
+    提取相同频率并放在一个通道上
     input: <class 'numpy.ndarray'> (8, 8, 1024)
     output: <class 'numpy.ndarray'> (32, 32, 64)
     '''
@@ -66,6 +79,7 @@ class IRSE(nn.Module):
         return fre
     
     '''
+    函数 se_fre 的逆运算
     input: <class 'numpy.ndarray'> (32, 32, 64)
     output: <class 'numpy.ndarray'> (8, 8, 1024)
     '''
@@ -98,7 +112,7 @@ class IRSE(nn.Module):
         return out_array
     
     '''
-    图像 2d 转 3d
+    图像 2d 转 3d, 复制3份
     '''
     def se_2dto3d(self, x):
         return np.repeat(x[:,:,np.newaxis], 3, axis=2)
@@ -106,28 +120,30 @@ class IRSE(nn.Module):
     '''
     前向传播函数
     '''
-    def forward(self, x):                   # <class 'torch.Tensor'> torch.Size([2, 3, 256, 256])
-        x = self.se_transpose(self.bs, x)   # <class 'numpy.ndarray'> (256, 256, 3)
-        x = self.se_dct(x)                  # <class 'numpy.ndarray'> (8, 8, 1024)
-        x = self.se_fre(x)                  #<class 'numpy.ndarray'> (32, 32, 64)
-        x = self.se_transpose(self.bs, x)   # <class 'torch.Tensor'> torch.Size([2, 64, 32, 32])
-        x = self.se_layer(x)                # <class 'torch.Tensor'> torch.Size([2, 64, 32, 32])
-        x = self.se_transpose(self.bs, x)   # <class 'numpy.ndarray'> (32, 32, 64)
-        x = self.se_ifre(x)                 # <class 'numpy.ndarray'> (8, 8, 1024)
-        x = self.se_idct(x)                 # <class 'numpy.ndarray'> (256, 256)
-        x = self.se_2dto3d(x)               # <class 'numpy.ndarray'> (256, 256, 3)
-        # cv2.imwrite("./out1.bmp",x)
-        x = self.se_transpose(self.bs, x)   # <class 'torch.Tensor'> torch.Size([2, 3, 256, 256])
-
-        return x
+    def forward(self, x):                                   # <class 'torch.Tensor'> torch.Size([bs, 3, 256, 256])
+        bs,c,h,w = x.shape
+        assert (h == 256 and w == 256 and c == 3)
+        self.bs = bs                                        # get input tensor batch size
+        out_list = []
+        for index in range(self.bs):                        # iterate over each batch
+            x1 = x[index]                                   # <class 'torch.Tensor'> torch.Size([3, 256, 256])
+            x1 = self.se_transpose(x1)                      # <class 'numpy.ndarray'> (256, 256, 3)
+            x1 = self.se_dct(x1)                            # <class 'numpy.ndarray'> (8, 8, 1024)
+            x1 = self.se_fre(x1)                            # <class 'numpy.ndarray'> (32, 32, 64)
+            x1 = self.se_transpose(x1)                      # <class 'torch.Tensor'> torch.Size([1, 64, 32, 32])
+            if self.se_block_type != SELayer.NONE.value:    
+                x1 = self.se_layer(x1)                      # <class 'torch.Tensor'> torch.Size([1, 64, 32, 32])
+            x1 = self.se_transpose(x1)                      # <class 'numpy.ndarray'> (32, 32, 64)
+            x1 = self.se_ifre(x1)                           # <class 'numpy.ndarray'> (8, 8, 1024)
+            x1 = self.se_idct(x1)                           # <class 'numpy.ndarray'> (256, 256)
+            x1 = self.se_2dto3d(x1)                         # <class 'numpy.ndarray'> (256, 256, 3)
+            x1 = self.se_transpose(x1)                      # <class 'torch.Tensor'> torch.Size([1, 3, 256, 256])
+            out_list.append(x1)
+        out = torch.cat(out_list, dim=0)                    # <class 'torch.Tensor'> torch.Size([bs, 3, 256, 256])
+        return out
 
 if __name__ == '__main__':
-    images_path = './dataset/images'
-    labels_path = './dataset/labels'
-
-    img_path = os.path.join(images_path, '1.bmp')
-    img = cv2.imread(img_path)
-    app = IRSE(2,64,2)
-    tensor = app.se_transpose(2, img)
+    tensor = torch.randn(2, 3, 256, 256)
+    app = IRSE(64,2, 'CSSE')
     out = app(tensor)
     print(type(out), out.shape)
