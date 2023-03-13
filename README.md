@@ -23,9 +23,24 @@ flowchart LR
 
 ## Result
 
-![image-20230309151805685](figures/image-20230309151805685.png)
+```mermaid
+graph LR
+		subgraph Input
+		A[<img src='/figures/IR.bmp' width='100' height='100'>]
+		end
+		subgraph Output
+		C[<img src='/figures/result.png' width='100' height='100'>]
+		end
+    subgraph ChannelSpatialSELayer
+        B1[<img src='/figures/DCT.bmp' width='100' height='100'>]
+        B2[<img src='/figures/SE.bmp' width='100' height='100'>]
+        B3[<img src='/figures/IDCT.bmp' width='100' height='100'>]
+    end
+    A-->|DCT|B1
+   	B1-->|CSSE|B2-->|IDCT|B3
+		B3-->|IR-Net|C
 
-
+```
 
 ## Refer
 

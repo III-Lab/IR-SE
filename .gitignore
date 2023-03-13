@@ -5,6 +5,7 @@
 *.pt
 testIR.py
 weights8/
+!figures/*
 
 
 # Byte-compiled / optimized / DLL files

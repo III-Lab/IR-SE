@@ -19,7 +19,7 @@ class IRSE(nn.Module):
             self.se_layer = ChannelSELayer(num_channels,reduction_ratio)
         elif self.se_block_type == SELayer.SSE.value:                               # 控件挤压
             self.se_layer = SpatialSELayer(num_channels,reduction_ratio)
-        elif self.se_block_type == SELayer.CSSE.value:                              # 通道与控件挤压
+        elif self.se_block_type == SELayer.CSSE.value:                              # 通道与空间挤压
             self.se_layer = ChannelSpatialSELayer(num_channels,reduction_ratio)
 
     '''
@@ -143,7 +143,20 @@ class IRSE(nn.Module):
         return out
 
 if __name__ == '__main__':
-    tensor = torch.randn(2, 3, 256, 256)
+    # tensor = torch.randn(2, 3, 256, 256)
+    img = cv2.imread('./dataset/images/2.bmp')
     app = IRSE(64,2, 'CSSE')
+    tensor = app.se_transpose(img)
     out = app(tensor)
     print(type(out), out.shape)
+
+''' save dct image
+out_array = np.zeros((256,256), np.float32)       # [8,8,1024] -> [256,256]
+ch = 0
+for i in range(0,256,8):
+    for j in range(0,256,8):
+        out_array[i:i+8,j:j+8] =  x1[:,:,ch]
+        ch = ch+1
+out_array = self.se_2dto3d(out_array)                         # <class 'numpy.ndarray'> (256, 256, 3)
+cv2.imwrite('./output/DCT.bmp', out_array)
+'''
