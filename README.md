@@ -25,21 +25,31 @@ flowchart LR
 
 ```mermaid
 graph LR
-		subgraph Input
-		A[<img src='/figures/IR.bmp' width='100' height='100'>]
+		subgraph Original-Image
+		A(<img src='/figures/IR.bmp'>)
 		end
-		subgraph Output
-		C[<img src='/figures/result.png' width='100' height='100'>]
+		subgraph Output-Image
+		C(<img src='/figures/result.png'>)
 		end
-    subgraph ChannelSpatialSELayer
-        B1[<img src='/figures/DCT.bmp' width='100' height='100'>]
-        B2[<img src='/figures/SE.bmp' width='100' height='100'>]
-        B3[<img src='/figures/IDCT.bmp' width='100' height='100'>]
+		
+    subgraph Block-DCTimage&CompressedDCT-Image&Compressed-Image
+        	B1(<img src='/figures/DCT.bmp' >)
+        	B2(<img src='/figures/SE.bmp'>)
+        	B3(<img src='/figures/IDCT.bmp'>)
     end
     A-->|DCT|B1
-   	B1-->|CSSE|B2-->|IDCT|B3
+    B1-->|CSSE|B2-->|IDCT|B3
 		B3-->|IR-Net|C
 
+		style Original-Image fill:#ffffff,stroke:#13,stroke-width:1px
+		style Output-Image fill:#ffffff,stroke:#23,stroke-width:1px
+		style Block-DCTimage&CompressedDCT-Image&Compressed-Image fill:#ffffff,stroke:#33,stroke-width:1px
+		
+		style A fill:#ffffff,stroke:#fff,stroke-width:0px
+		style B1 fill:#ffffff,stroke:#fff,stroke-width:0px
+		style B2 fill:#ffffff,stroke:#fff,stroke-width:0px
+		style B3 fill:#ffffff,stroke:#fff,stroke-width:0px
+		style C fill:#ffffff,stroke:#fff,stroke-width:0px
 ```
 
 ## Refer
