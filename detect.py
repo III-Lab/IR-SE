@@ -83,10 +83,10 @@ class KeyPointDetector:
 
 if __name__ == '__main__':
     
-    weight_path = './weight/epoch_44_0.914.pt'
-    img = '242.bmp'
+    weight_path = './weight/epoch_98_0.081.pt'
+    img = '1.bmp'
 
-    test_image_path = './dataset/test'
+    test_image_path = './dataset/images'
     out_image_path = './output'
     img_path = os.path.join(test_image_path, img)
     kdetect = KeyPointDetector(weight_path)
@@ -96,10 +96,10 @@ if __name__ == '__main__':
     end_time = time()
     elapsed_time = end_time - begin_time
     print("Total time elapsed: %.2f seconds" % elapsed_time)
-    
-    cv2.imshow('out', hm)
-    cv2.imshow('orgin', orgin)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    hm = hm *2
+    # cv2.imshow('out', hm)
+    # cv2.imshow('orgin', orgin)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
     out_name = os.path.join(out_image_path, img)
     cv2.imwrite(out_name, hm)

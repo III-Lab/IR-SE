@@ -120,8 +120,11 @@ class ChannelSpatialSELayer(nn.Module):
         :param input_tensor: X, shape = (batch_size, num_channels, H, W)
         :return: output_tensor
         """
-        output_tensor = torch.max(self.cSE(input_tensor), self.sSE(input_tensor))
-        return output_tensor
+        x = self.cSE(input_tensor)
+        x = self.sSE(x)
+        # output_tensor = torch.max(self.cSE(input_tensor), self.sSE(input_tensor))
+        # return output_tensor
+        return x
 
 
 class SELayer(Enum):
